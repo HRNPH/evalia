@@ -291,17 +291,9 @@ export default function App() {
               message: { type: 'string', description: 'an alert message', required: true }
             },
             execute: async (args: { message: string }) => {
-              // await fetch('http://localhost:3001/api/v1/alert', {
-              //   method: 'POST',
-              //   headers: {
-              //     'Content-Type': 'application/json',
-              //   },
-              //   body: JSON.stringify({ message: args.message }),
-              // })
               APIClient.api.v1.alert.post({
-                message: ""
+                message: args.message,
               })
-
               return {
                 success: true,
                 message: `Alert message sent, Received: ${args.message}`,
