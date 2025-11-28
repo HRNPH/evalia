@@ -1,0 +1,35 @@
+{
+    "name": "backend",
+    "version": "1.0.50",
+    "type": "module",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "dev": "bun run --watch src/index.ts",
+        "build": "bun build src/index.ts --outdir dist --target bun",
+        "lint": "bun x eslint src/ --ext .ts --max-warnings 0",
+        "type-check": "bun tsc --noEmit --skipLibCheck"
+    },
+    "dependencies": {
+        "@ai-sdk/openai": "^2.0.68",
+        "@elysiajs/cookie": "^0.8.0",
+        "@elysiajs/cors": "^1.4.0",
+        "@elysiajs/openapi": "^1.4.11",
+        "@elysiajs/websocket": "^0.2.8",
+        "@khaveeai/providers-mock": "^0.1.0",
+        "@khaveeai/providers-openai": "^0.1.0",
+        "@prisma/client": "^6.19.0",
+        "ai": "^5.0.93",
+        "dotenv": "^17.2.3",
+        "elysia": "latest",
+        "openai": "^6.9.1",
+        "prisma": "^6.19.0"
+    },
+    "devDependencies": {
+        "bun-types": "latest",
+        "eslint": "^9.39.1",
+        "@typescript-eslint/eslint-plugin": "^8.47.0",
+        "@typescript-eslint/parser": "^8.47.0",
+        "eslint-config-standard": "^17.1.0"
+    },
+    "module": "src/index.js"
+}

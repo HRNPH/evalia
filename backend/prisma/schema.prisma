@@ -1,0 +1,61 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "sqlite"
+    url      = env("DATABASE_URL")
+}
+
+// Avatar configurations
+model AvatarConfig {
+    id          Int      @id @default(autoincrement())
+    name        String
+    vrmPath     String   @map("vrm_path")
+    expressions String? // JSON
+    animations  String? // JSON
+    createdAt   DateTime @default(now()) @map("created_at")
+
+    @@map("avatar_configs")
+}
+
+// Conversation history
+model Conversation {
+    id        Int      @id @default(autoincrement())
+    sessionId String   @map("session_id")
+    messages  String // JSON array
+    summary   String?
+    createdAt DateTime @default(now()) @map("created_at")
+
+    @@map("conversations")
+}
+
+// Home automation devices
+model Device {
+    id        Int      @id @default(autoincrement())
+    name      String
+    type      String
+    config    String? // JSON
+    status    String?
+    createdAt DateTime @default(now()) @map("created_at")
+
+    @@map("devices")
+}
+
+// Tasks and reminders
+model Task {
+    id          Int       @id @default(autoincrement())
+    title       String
+    description String?
+    dueDate     DateTime? @map("due_date")
+    status      String    @default("pending")
+    createdAt   DateTime  @default(now()) @map("created_at")
+
+    @@map("tasks")
+}

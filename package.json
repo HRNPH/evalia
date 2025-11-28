@@ -1,0 +1,35 @@
+{
+    "name": "evalia-monorepo",
+    "private": true,
+    "workspaces": [
+        "frontend",
+        "backend"
+    ],
+    "scripts": {
+        "install:all": "bun install && bun run install:frontend && bun run install:backend",
+        "install:frontend": "cd frontend && bun install",
+        "install:backend": "cd backend && bun install",
+        "dev": "concurrently \"npx nx run backend:dev\" \"npx nx run frontend:dev\"",
+        "dev:backend": "npx nx run backend:dev",
+        "dev:frontend": "npx nx run frontend:dev",
+        "build": "npx nx run-many --target=build --all",
+        "build:backend": "npx nx run backend:build",
+        "build:frontend": "npx nx run frontend:build",
+        "lint": "npx nx run-many --target=lint --all",
+        "lint:backend": "npx nx run backend:lint",
+        "lint:frontend": "npx nx run frontend:lint",
+        "type-check": "npx nx run-many --target=type-check --all",
+        "type-check:backend": "npx nx run backend:type-check",
+        "type-check:frontend": "npx nx run frontend:type-check"
+    },
+    "devDependencies": {
+        "@nx/eslint": "^22.1.2",
+        "@nx/js": "^22.1.2",
+        "concurrently": "^9.2.1",
+        "nx": "22.1.2"
+    },
+    "dependencies": {
+        "@khaveeai/providers-mock": "^0.1.0"
+    },
+    "packageManager": "pnpm@10.22.0+sha512.bf049efe995b28f527fd2b41ae0474ce29186f7edcb3bf545087bd61fbbebb2bf75362d1307fda09c2d288e1e499787ac12d4fcb617a974718a6051f2eee741c"
+}
