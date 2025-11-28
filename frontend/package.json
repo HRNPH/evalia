@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@elysiajs/eden": "^1.4.5",
     "@khaveeai/core": "^0.1.5",
     "@khaveeai/providers-openai-realtime": "^0.2.7",
     "@khaveeai/react": "^0.2.6",

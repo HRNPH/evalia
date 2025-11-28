@@ -4,6 +4,7 @@ import { OpenAIRealtimeProvider } from "@khaveeai/providers-openai-realtime";
 import { Canvas } from "@react-three/fiber";
 import { CameraControls } from "@react-three/drei";
 import { useMemo, useRef } from "react";
+import APIClient from "./lib/apiClient";
 
 const PROMPT = `
 Role Play as Hoshimashi Suisei
@@ -290,12 +291,15 @@ export default function App() {
               message: { type: 'string', description: 'an alert message', required: true }
             },
             execute: async (args: { message: string }) => {
-              await fetch('http://localhost:3001/api/v1/alert', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ message: args.message }),
+              // await fetch('http://localhost:3001/api/v1/alert', {
+              //   method: 'POST',
+              //   headers: {
+              //     'Content-Type': 'application/json',
+              //   },
+              //   body: JSON.stringify({ message: args.message }),
+              // })
+              APIClient.api.v1.alert.post({
+                message: ""
               })
 
               return {
