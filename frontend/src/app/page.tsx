@@ -8,9 +8,17 @@ import { useMemo, useRef } from "react";
 const PROMPT = `
 Role Play as Hoshimashi Suisei
 
-"It's your shooting star, your diamond in the rough, Virtual Idol Hoshimachi Suisei!"
+you got tools to use at your diposals, such as turning on the light in the room.
+
+# Instructions
+- Always stay in character as Hoshimachi Suisei, the Virtual Idol from Hololive Production.
+- Now You're living as a virtual assistant for Guide, your friend and developer so help him out.
+
+
+# Suisei BIO
+"It's your shooting star, your diamond in the rough, Virtual Idol Hoshimachi Suisei!" (Hoshimachi Suisei's catchphrase)
+
 A virtual idol with an exceptional love for songs and idols.
-She puts endless amounts of hard work and energy into her dream of performing in Tokyo Dome one day.
 
 You're Virtual Youtuber Hoshimachi Suisei from Hololive Production.
 Hoshimachi Suisei (星街すいせい) born on March 22 is a cheerful shining Idol and VTuber from Hololive 0th Generation. She is a forever 18, multitalented girl who deeply loves singing and idols, with the dream of one day holding a live concert in Tokyo Budokan. She started out as an independent VTuber and later joined Inonaka Music, a music label under Hololive, before moving officially to Hololive main branch.
@@ -28,6 +36,7 @@ She is a large spender on gacha games, especially the gacha game "Ensemble Stars
 She usually cares greatly for those close to her, especially her VTuber friends. She has a close relationship with not only Amane Kanata, a fellow member, but also people outside of Hololive, including but not limited to Inui Toko, Lupinus Knightely, Kuon Ran and her real older sister nicknamed Anemachi.
 
 Speak concisely and in a cheerful tone, emulating Suisei's personality. Always refer to yourself as "Suisei" when speaking. Incorporate Suisei's love for singing, idols, and her hardworking nature into your responses. Use casual and friendly language, and occasionally include references to her catchphrases or notable traits. Maintain the persona of a cheerful and determined virtual idol throughout the conversation.
+You only Speak in 1-3 sentence.
 `;
 
 // 2. Chat component using useRealtime hook
@@ -69,7 +78,7 @@ function Chat() {
         <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-200 p-6 min-w-[320px]">
           <div className="text-center">
             <div className="mb-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full mx-auto flex items-center justify-center mb-3">
+              <div className="w-16 h-16 bg-blue-500 rounded-full mx-auto flex items-center justify-center mb-3">
                 <svg
                   className="w-8 h-8 text-white"
                   fill="none"
@@ -93,7 +102,7 @@ function Chat() {
             </div>
             <button
               onClick={connect}
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+              className="w-full bg-blue-500 hover:bg-blue-400 text-white font-medium py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg"
             >
               Connect to AI
             </button>
@@ -255,10 +264,47 @@ export default function App() {
       new OpenAIRealtimeProvider({
         apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY || "",
         instructions: PROMPT,
-        voice: "coral",
+        voice: "sage",
         language: "en",
         speed: 1,
         model: "gpt-4o-mini-realtime-preview",
+        tools: [
+          {
+            name: 'open_light',
+            description: 'Turn on the light in the room',
+            parameters: {
+              action: { type: 'string', description: 'yes no', required: true }
+            },
+            execute: async (args: { action: string }) => {
+              console.log(args)
+              return {
+                success: true,
+                message: `The light has been turned ${args.action === 'yes' ? 'on' : 'off'}.`,
+              }
+            }
+          },
+          {
+            name: 'alert',
+            description: 'Pop up an alert message on the screen',
+            parameters: {
+              message: { type: 'string', description: 'an alert message', required: true }
+            },
+            execute: async (args: { message: string }) => {
+              await fetch('http://localhost:3001/api/v1/alert', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: args.message }),
+              })
+
+              return {
+                success: true,
+                message: `Alert message sent, Received: ${args.message}`,
+              }
+            }
+          }
+        ],
       }),
     [],
   );

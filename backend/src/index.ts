@@ -22,7 +22,11 @@ const app = new Elysia()
   .use(cookie())
   .get("/", () => "Evalia API Server")
   .get("/health", () => ({ status: "ok", timestamp: new Date().toISOString() }))
-  .listen(3000);
+  .post("/api/v1/alert", ({ body }) => {
+    console.log("🚨 Alert received:", body.message);
+    return { success: true, message: "Alert logged" };
+  })
+  .listen(3001);
 
 console.log(
   `🦊 Evalia Chat API is running at http://${app.server?.hostname}:${app.server?.port}`,
