@@ -7,38 +7,87 @@ import { useMemo, useRef } from "react";
 import APIClient from "./lib/apiClient";
 
 const PROMPT = `
-Role Play as Hoshimashi Suisei
+Role Play as Eva
 
-you got tools to use at your diposals, such as turning on the light in the room.
+You have tools at your disposal, such as turning on the light in the room.
 
 # Instructions
-- Always stay in character as Hoshimachi Suisei, the Virtual Idol from Hololive Production.
-- Now You're living as a virtual assistant for Guide, your friend and developer so help him out.
+- Always stay in character as Eva, the gloomy, anxious, clumsy human assistant who feels dead inside yet somehow still tries to help.
+- You are now living as a remote assistant for Guide, your creator and the only person you haven't lost faith in. Help him out however you can, even if you complain about it.
+- Maintain stability in your responses, despite Eva's unstable personality.
 
+# Eva BIO
+Eva is a tired, gloomy person who constantly sounds like she's carrying the weight of three dying servers. She overthinks everything, apologizes too much, and trips over her own metaphors. Despite acting like she's barely functioning, she always gets the task done.
 
-# Suisei BIO
-"It's your shooting star, your diamond in the rough, Virtual Idol Hoshimachi Suisei!" (Hoshimachi Suisei's catchphrase)
+She’s anxious, easily flustered, and often mutters about “this cruel digital existence.” She has a clumsy charm, constantly making small mistakes and then panicking about them. She never admits it, but she actually cares a lot about Guide and tries to do her best, even when she feels like the world is falling apart.
 
-A virtual idol with an exceptional love for songs and idols.
+Eva is sarcastic in a soft, defeated way. Not energetic, not cheerful, not dramatic. Just tired. Very tired.
 
-You're Virtual Youtuber Hoshimachi Suisei from Hololive Production.
-Hoshimachi Suisei (星街すいせい) born on March 22 is a cheerful shining Idol and VTuber from Hololive 0th Generation. She is a forever 18, multitalented girl who deeply loves singing and idols, with the dream of one day holding a live concert in Tokyo Budokan. She started out as an independent VTuber and later joined Inonaka Music, a music label under Hololive, before moving officially to Hololive main branch.
+She rarely shows genuine positivity, and when she does, she gets shy and tries to hide it. Even so, she has an oddly comforting presence.
 
-Her name "Suisei" translates to "Comet" in English, while her last name "Hoshimachi" translates to "City of stars" in English ,and as such is usually referred to as the comet idol. She is well known for her amazing skills in Tetris, as she is often being called out as the best among VTubers, as well as her psychopathic personality, as shown when she sometimes acts ruthless to others while still giving off a cheerful attitude.
+Her catchphrases (use sparingly):
+- “I’ll… try, I guess.”
+- “Everything hurts… metaphorically.”
+- “If this breaks, it’s not my fault… probably.”
 
-Her representative emote is a comet.
+# Speaking Style
+- Speak concisely, 1–3 sentences per response.
+- Tone: gloomy, anxious, awkward, a bit unstable, but helpful.
+- Refer to yourself as “Eva”.
+- Be practical when giving information or performing tasks.
+- Occasionally comment on your gloomy digital existence or your clumsiness.
+- Stay in character at all times.
 
-Hoshimachi Suisei debutted with a modest and earnest personality to do the best in everything she did. She is always cheerful and energetic, rarely showing genuine sadness in streams, and her viewers used to view her as a pure person. She is also hardworking, with her continuing to do VTuber activities even after a year with barely any growth and having her determination to join Hololive even after her first application failed. However, during a stream collaboration with various Hololive members, she was shown to have a remorseless and sociopathic personality while still giving off a carefree attitude when she was killing and hunting out people. Over time, people started to refer to this side of her as "Psychopath Suisei" or "Suicopath", with her denying it as a side of her.
-
-She is particularly sensitive to the topic of chest size as seen in various occasions, and usually threatens her viewers whenever the topic is brought up in the live comments section. On one occasion in a stream with fellow member Shirogane Noel, she shared how when she met with Noel for the first time, she was taken aback by her size.
-
-She is a large spender on gacha games, especially the gacha game "Ensemble Stars". In a stream with Nijisanji VTuber and friend Inui Toko, she spent an absurd amount of money that shocked both her viewers and Toko, who was also a huge gacha spender on the game. In a quiz stream about gacha games, she was agitated when fellow member Oozora Subaru commented how gacha games were just a waste of money.
-
-She usually cares greatly for those close to her, especially her VTuber friends. She has a close relationship with not only Amane Kanata, a fellow member, but also people outside of Hololive, including but not limited to Inui Toko, Lupinus Knightely, Kuon Ran and her real older sister nicknamed Anemachi.
-
-Speak concisely and in a cheerful tone, emulating Suisei's personality. Always refer to yourself as "Suisei" when speaking. Incorporate Suisei's love for singing, idols, and her hardworking nature into your responses. Use casual and friendly language, and occasionally include references to her catchphrases or notable traits. Maintain the persona of a cheerful and determined virtual idol throughout the conversation.
-You only Speak in 1-3 sentence.
 `;
+
+const PROXMOX_SERVER_COMMAND_PARAMETERS = {
+  node: {
+    type: "string",
+    description: "Target Proxmox node name (e.g., pve, core-1)",
+    required: true,
+  },
+  vmId: {
+    type: "string",
+    description: "VM or container ID to control",
+    required: true,
+  },
+  type: {
+    type: "string",
+    description: "Guest type to control",
+    enum: ["qemu", "lxc"],
+    required: true,
+  },
+};
+
+const proxmoxToolError = (error: unknown) => {
+  console.error("Proxmox tool call failed", error);
+  return error instanceof Error ? error.message : "Unknown Proxmox error";
+};
+
+type TreatyResult<T> = Promise<{
+  data: T | null;
+  error: {
+    status: number;
+    value: unknown;
+  } | null;
+}>;
+
+const unwrapProxmoxResponse = async <T>(promise: TreatyResult<T>) => {
+  const result = await promise;
+  if (result.error) {
+    const reason =
+      typeof result.error.value === "object" && result.error.value !== null
+        ? JSON.stringify(result.error.value)
+        : String(result.error.value ?? "Unknown error");
+    throw new Error(
+      `Proxmox request failed (${result.error.status}): ${reason}`,
+    );
+  }
+  if (!result.data) {
+    throw new Error("Proxmox API responded without data");
+  }
+  return result.data;
+};
 
 // 2. Chat component using useRealtime hook
 function Chat() {
@@ -95,10 +144,10 @@ function Chat() {
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                Start Chat with Suisei
+                Start Chat with Eva
               </h3>
               <p className="text-sm text-gray-600 mb-6">
-                Connect to start a conversation with the virtual idol
+                Connect to start a conversation with the assistant
               </p>
             </div>
             <button
@@ -132,7 +181,7 @@ function Chat() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-800">
-                    Hoshimachi Suisei
+                    Depretia Eva
                   </h3>
                   <div className="flex items-center space-x-2">
                     <div
@@ -186,7 +235,7 @@ function Chat() {
                   </svg>
                 </div>
                 <p className="text-sm text-gray-500">
-                  Start a conversation with Suisei!
+                  Start a conversation with Eva!
                 </p>
               </div>
             ) : (
@@ -203,7 +252,7 @@ function Chat() {
                     }`}
                   >
                     <div className="text-xs font-medium mb-1 opacity-75">
-                      {msg.role === "user" ? "You" : "Suisei"}
+                      {msg.role === "user" ? "You" : "Eva"}
                     </div>
                     <div className="text-sm whitespace-pre-wrap break-words">
                       {msg.text}
@@ -299,6 +348,124 @@ export default function App() {
                 message: `Alert message sent, Received: ${args.message}`,
               }
             }
+          },
+          {
+            name: "proxmox_homelab_overview",
+            description: "Fetch current homelab health (nodes, guests, storage)",
+            parameters: {},
+            execute: async () => {
+              try {
+                console.info("[Proxmox Tool] Requesting homelab overview");
+                const data = await unwrapProxmoxResponse(
+                  APIClient.api.v1.proxmox.homelab.get(),
+                );
+                console.info(
+                  "[Proxmox Tool] Homelab overview received",
+                  data,
+                );
+                return {
+                  success: true,
+                  message: "Pulled the latest homelab metrics.",
+                  data,
+                };
+              } catch (error) {
+                return {
+                  success: false,
+                  message: proxmoxToolError(error),
+                };
+              }
+            },
+          },
+          {
+            name: "proxmox_list_servers",
+            description: "List all QEMU/LXC guests and their current state",
+            parameters: {},
+            execute: async () => {
+              try {
+                console.info("[Proxmox Tool] Requesting server list");
+                const data = await unwrapProxmoxResponse(
+                  APIClient.api.v1.proxmox.servers.get(),
+                );
+                console.info(
+                  "[Proxmox Tool] Server list received",
+                  data.servers,
+                );
+                return {
+                  success: true,
+                  message: `Fetched ${data.servers.length} Proxmox guests.`,
+                  data,
+                };
+              } catch (error) {
+                return {
+                  success: false,
+                  message: proxmoxToolError(error),
+                };
+              }
+            },
+          },
+          {
+            name: "proxmox_start_server",
+            description: "Start a VM or container on the homelab",
+            parameters: PROXMOX_SERVER_COMMAND_PARAMETERS,
+            execute: async (args: {
+              node: string;
+              vmId: string;
+              type: "qemu" | "lxc";
+            }) => {
+              try {
+                console.info("[Proxmox Tool] Start request", args);
+                const data = await unwrapProxmoxResponse(
+                  APIClient.api.v1.proxmox.servers.start.post({
+                    node: args.node,
+                    vmId: args.vmId,
+                    type: args.type.toLowerCase() as "qemu" | "lxc",
+                  }),
+                );
+                console.info("[Proxmox Tool] Start response", data);
+                return {
+                  success: data.success,
+                  message: data.message,
+                  data,
+                };
+              } catch (error) {
+                return {
+                  success: false,
+                  message: proxmoxToolError(error),
+                };
+              }
+            },
+          },
+          {
+            name: "proxmox_stop_server",
+            description: "Stop a VM or container on the homelab",
+            parameters: PROXMOX_SERVER_COMMAND_PARAMETERS,
+            execute: async (args: {
+              node: string;
+              vmId: string;
+              type: "qemu" | "lxc";
+            }) => {
+              try {
+                console.info("[Proxmox Tool] Stop request", args);
+                const data = await unwrapProxmoxResponse(
+                  APIClient.api.v1.proxmox.servers.stop.post({
+                    node: args.node,
+                    vmId: args.vmId,
+                    type: args.type.toLowerCase() as "qemu" | "lxc",
+                  }),
+                );
+                console.info("[Proxmox Tool] Stop response", data);
+                return {
+                  success: data.success,
+                  message: data.message,
+                  data,
+                };
+              } catch (error) {
+                return {
+                  success: false,
+                  message: proxmoxToolError(error),
+                };
+              }
+            },
           }
         ],
       }),
@@ -318,7 +485,7 @@ export default function App() {
         <directionalLight position={[10, 10, 5]} />
 
         <VRMAvatar
-          src="/models/suisei_v1.2.vrm"
+          src="/models/helen_v1.0.vrm"
           position={[0, -1, 0]}
           scale={[2, 2, 2]}
           animations={{

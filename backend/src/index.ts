@@ -1,10 +1,21 @@
-import { Elysia, t } from "elysia";
+import { config as loadEnv } from "dotenv";
+import path from "path";
+
+loadEnv();
+loadEnv({
+  path: path.resolve(process.cwd(), "..", ".env"),
+  override: false,
+});
+import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
 import { cookie } from "@elysiajs/cookie";
 import openapi from "@elysiajs/openapi";
 import { alertController } from "./module/alert";
+import { proxmoxController } from "./module/proxmox";
 
-const apiV1 = new Elysia({prefix: "/api/v1"}).use(alertController)
+const apiV1 = new Elysia({ prefix: "/api/v1" })
+  .use(alertController)
+  .use(proxmoxController);
 
 const app = new Elysia()
   .use(
