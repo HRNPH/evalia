@@ -1,6 +1,7 @@
 # EvaliaAI
 
 Let AI control the whole home.
+Developed to test the feasability of https://github.com/SolveServeSolution/khaveeai-sdk Framework
 
 ## Quickstart (Zero Experience Required)
 
